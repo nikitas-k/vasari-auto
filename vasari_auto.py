@@ -32,7 +32,32 @@ from scipy import stats
 pd.set_option('display.max_rows', 500)
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
-def get_vasari_features(file,atlases='/atlas_masks/',verbose=False,enhancing_label=3,nonenhancing_label=1,oedema_label=2,z_dim=-1,cf=1,t_ependymal=5000,t_wm=100,resolution=1,midline_thresh=5,enh_quality_thresh=15,cyst_thresh=50,cortical_thresh=1000,focus_thresh=30000,num_components_bin_thresh=10,num_components_cet_thresh=15):
+from utils import register_to_mni
+import ants
+import nibabel as nib
+
+ATLAS_AFFINE = nib.load(os.path.join('atlas_masks', 'MNI152_T1_1mm_brain.nii.gz')).affine
+
+def get_vasari_features(
+        file,
+        anat_img=None,
+        atlases='/atlas_masks/',
+        verbose=False,
+        enhancing_label=3,
+        nonenhancing_label=1,
+        oedema_label=2,
+        z_dim=-1,
+        cf=1,
+        t_ependymal=5000,
+        t_wm=100,
+        resolution=1,
+        midline_thresh=5,
+        enh_quality_thresh=15,
+        cyst_thresh=50,
+        cortical_thresh=1000,
+        focus_thresh=30000,
+        num_components_bin_thresh=10,
+        num_components_cet_thresh=15):
     """
     #Required argument
     file - NIFTI segmentation file with binary lesion labels
@@ -65,6 +90,30 @@ def get_vasari_features(file,atlases='/atlas_masks/',verbose=False,enhancing_lab
         print('Working on: '+str(file))
         print('')
 
+    # Register anatomical image to MNI152 if provided and segmentation file is not already in MNI space
+    seg_img = nib.load(file)
+    seg_affine = seg_img.affine
+    if anat_img is not None and not np.array_equal(seg_affine, ATLAS_AFFINE):
+        if verbose:
+            print(f"Anatomical image affine: {seg_affine}")
+            print(f"MNI template affine: {ATLAS_AFFINE}")
+            print("Registering anatomical image to MNI space...")
+        reg_result = register_to_mni(anat_img, atlases, output_prefix="anat_registered")
+        anat_img = reg_result['warped_image']
+        if verbose:
+            print(f"Registration complete. Warped image saved at {anat_img}")
+    
+        seg_img = ants.image_read(file)
+        mni_template = ants.image_read(os.path.join(atlases, 'MNI152_T1_1mm_brain.nii.gz'))
+        warped_seg = ants.apply_transforms(
+            fixed=mni_template,
+            moving=seg_img,
+            transformlist=reg_result['transform'],
+            interpolator='nearestNeighbor'
+        )
+        warped_seg_path = "segmentation_registered_to_MNI.nii.gz"
+        warped_seg.to_file(warped_seg_path)
+        file = warped_seg_path
     ##derive anatomy masks - this is for automated location (F1)
     brainstem = atlases+'brainstem.nii.gz'
     brainstem = nib.load(brainstem)

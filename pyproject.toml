@@ -14,8 +14,8 @@ numpy = "^1.24"
 pandas = "^2.0"
 seaborn = "^0.1"
 requests = "^2.31"
-antspyx
-nibabel
+antspyx = "^0.1"
+nibabel = "^0.1"
 
 [project.urls]
 Homepage = "https://github.com/jamesruffle/vasari-auto"

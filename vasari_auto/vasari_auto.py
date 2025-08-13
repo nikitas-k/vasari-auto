@@ -32,7 +32,7 @@ from scipy import stats
 pd.set_option('display.max_rows', 500)
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
-from utils import register_to_mni
+from vasari_auto.utils import register_to_mni
 import ants
 import nibabel as nib
 

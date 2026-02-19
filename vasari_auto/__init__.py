@@ -1,0 +1,1 @@
+import vasari_auto.vasari_auto as vasari_auto

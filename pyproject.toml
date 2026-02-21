@@ -22,6 +22,12 @@ Homepage = "https://github.com/jamesruffle/vasari-auto"
 [tool.setuptools]
 packages = ["vasari_auto"]
 
+[tool.setuptools.package-data]
+vasari_auto = [
+    "atlas_masks/mni152/*.nii.gz",
+    "atlas_masks/sri24/*.nii.gz",
+]
+
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"

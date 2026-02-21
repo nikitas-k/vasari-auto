@@ -36,12 +36,82 @@ from vasari_auto.utils import register_to_mni
 import ants
 import nibabel as nib
 
-ATLAS_AFFINE = nib.load(os.path.join('atlas_masks', 'MNI152_T1_1mm_brain.nii.gz')).affine
+# ---------------------------------------------------------------------------
+# Atlas directory resolution
+# ---------------------------------------------------------------------------
+_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
+_ATLAS_ROOT = os.path.join(_PKG_DIR, 'atlas_masks')
+
+#: Mapping from user-facing space names to atlas sub-directory names
+_SPACE_MAP = {
+    'mni152': 'mni152',
+    'mni152nlin2009casym': 'mni152',
+    'mni152nlin6asym': 'mni152',
+    'sri24': 'sri24',
+}
+
+#: Reference brain image per atlas sub-directory
+_ATLAS_REFERENCE = {
+    'mni152': 'MNI152_T1_1mm_brain.nii.gz',
+    'sri24': 'MNI152_in_SRI24_T1_1mm_brain.nii.gz',
+}
+
+
+def _resolve_atlas_dir(template_space='mni152'):
+    """Return the absolute path (with trailing ``/``) to the atlas masks
+    for *template_space*.
+
+    Parameters
+    ----------
+    template_space : str
+        Template space name (case-insensitive).  Accepted values:
+        ``'mni152'``, ``'MNI152NLin2009cAsym'``, ``'MNI152NLin6Asym'``,
+        ``'sri24'`` / ``'SRI24'``.
+
+    Returns
+    -------
+    str
+        Absolute path to the atlas directory with a trailing ``/``.
+    """
+    key = template_space.lower().replace('-', '').replace('_', '')
+    subdir = _SPACE_MAP.get(key)
+    if subdir is None:
+        raise ValueError(
+            f"Unsupported template_space '{template_space}'. "
+            f"Accepted: {list(_SPACE_MAP.keys())}"
+        )
+    d = os.path.join(_ATLAS_ROOT, subdir)
+    if not os.path.isdir(d):
+        raise FileNotFoundError(
+            f"Atlas directory not found: {d}. "
+            f"Ensure atlas_masks/{subdir}/ is installed with the package."
+        )
+    return d + '/'
+
+
+def _get_atlas_reference(template_space='mni152'):
+    """Return the absolute path to the reference brain NIfTI for
+    *template_space*."""
+    key = template_space.lower().replace('-', '').replace('_', '')
+    subdir = _SPACE_MAP.get(key)
+    if subdir is None:
+        raise ValueError(
+            f"Unsupported template_space '{template_space}'. "
+            f"Accepted: {list(_SPACE_MAP.keys())}"
+        )
+    return os.path.join(_ATLAS_ROOT, subdir, _ATLAS_REFERENCE[subdir])
+
+
+# Module-level affine loaded from the bundled MNI152 reference brain.
+# Used to decide whether a segmentation is already in MNI space.
+ATLAS_AFFINE = nib.load(_get_atlas_reference('mni152')).affine
+
 
 def get_vasari_features(
         file,
         anat_img=None,
-        atlases='/atlas_masks/',
+        atlases=None,
+        template_space='mni152',
         verbose=False,
         enhancing_label=3,
         nonenhancing_label=1,
@@ -61,7 +131,13 @@ def get_vasari_features(
     """
     #Required argument
     file - NIFTI segmentation file with binary lesion labels
-    atlases - atlas path for location derivation
+    
+    #Optional arguments
+    atlases - atlas path for location derivation.  If None, uses the bundled
+              atlas masks for the chosen template_space.
+    template_space - template space for atlas masks: 'mni152' (default),
+                     'MNI152NLin2009cAsym', 'MNI152NLin6Asym', or 'SRI24'.
+                     Only used when atlases=None.
     
     #Optional hyperparmeters
     verbose - whether to enable verbose logging, default=False
@@ -81,6 +157,10 @@ def get_vasari_features(
     num_components_bin_thresh - threshold for quantifying a multifocal lesion, default = 10
     num_components_cet_thresh - threshold for satellite lesions, default=15
     """
+    
+    # Resolve atlas directory
+    if atlases is None:
+        atlases = _resolve_atlas_dir(template_space)
     
     start_time = time.time()
     

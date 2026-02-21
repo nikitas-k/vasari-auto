@@ -1,13 +1,20 @@
 [project]
 name = "vasari-auto"
 version = "0.1.0"
-description = "Automated tools for Vasari project"
+description = "Automated VASARI featurisation of glioma MRI — fork of the original by Ruffle et al."
 authors = [
-    { name = "James Ruffle", email = "j.ruffle@ucl.ac.uk" }
+    { name = "James Ruffle", email = "j.ruffle@ucl.ac.uk" },
+    { name = "Nikitas C. Koussis" },
 ]
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
 dependencies = [
     "numpy",
     "pandas",
@@ -17,7 +24,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jamesruffle/vasari-auto"
+Homepage = "https://github.com/nikitas-k/vasari-auto"
+Original = "https://github.com/jamesruffle/vasari-auto"
+Article = "https://doi.org/10.1016/j.nicl.2024.103668"
 
 [tool.setuptools]
 packages = ["vasari_auto"]

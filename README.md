@@ -1,5 +1,12 @@
 # VASARI-auto
-This is the codebase for automated VASARI characterisation of glioma, as detailed in our [article](https://doi.org/10.1016/j.nicl.2024.103668).
+
+> **Note — This is a fork** of the [original VASARI-auto](https://github.com/jamesruffle/vasari-auto)
+> by [Ruffle et al. (2024)](https://doi.org/10.1016/j.nicl.2024.103668), maintained
+> by [Nikitas Koussis](https://github.com/nikitas-k) for integration with
+> [OncoPrep](https://github.com/nikitas-k/oncoprep).  All scientific credit
+> belongs to the original authors — see [Citation](#citation) below.
+
+This is the codebase for automated VASARI characterisation of glioma, as detailed in the original [article](https://doi.org/10.1016/j.nicl.2024.103668).
 
 ![Overview](assets/overview.png)
 
